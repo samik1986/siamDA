@@ -192,12 +192,12 @@ def create_network(input_dim):
 
 model = create_network([100, 100, 3])
 print(model.summary())
-plot_model(model, to_file='model.png')
-# SVG(model_to_dot(model).create(prog='dot', format='svg'))
+plot_model(model, to_file='models.png')
+# SVG(model_to_dot(models).create(prog='dot', format='svg'))
 # tbCallBack = keras.callbacks.TensorBoard(log_dir='Graph', histogram_freq=0,
 #           write_graph=True, write_images=True)
 #
-# tbCallBack.set_model(model)
+# tbCallBack.set_model(models)
 #
 # keras.callbacks.TensorBoard(sess)
 
@@ -210,7 +210,7 @@ model.fit([x_train, x_train],
           y_train,
           batch_size=150, epochs=5)
 
-# score = model.evaluate([x_test, x1_test],
+# score = models.evaluate([x_test, x1_test],
 #                        [y_test, y_aux_test],
 #                        batch_size=20)
 

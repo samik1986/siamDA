@@ -13,7 +13,6 @@ from keras.optimizers import SGD
 from keras.utils import plot_model
 from IPython.display import SVG
 from keras.utils.vis_utils import model_to_dot
-from ncLayer import *
 from keras import backend as K
 from keras.engine.topology import Layer
 from tensorflow.python.ops import array_ops
@@ -32,30 +31,32 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 #     np.random.randint(2, size=(100, 1)), num_classes=2)
 # # y_aux_train = np.zeros((100, 100, 100, 3))
 #
-# x_test = np.random.random((2, 100, 100, 3))
+# x_aux_train = np.random.random((100, 100, 100, 3))
 # y_test = keras.utils.to_categorical(
 #     np.random.randint(10, size=(2, 1)), num_classes=10)
 # x1_test = np.zeros((2, 100, 100, 3))
 # y_aux_test = keras.utils.to_categorical(
 #     np.random.randint(2, size=(2, 1)), num_classes=2)
-
-x_train = np.load('ae_gxTrain.npy')
+print "loading gallery..."
+x_train = np.load('/media/vplab/Samik_Work/Samik/Datasets/FR_SURV_VID_pr/data_npy/FSV/ae_gxTrain.npy')
 # x_train = x_train[1:200]
 # y_train = np.load('gyTrain.npy')
-x_aux_train = np.load('ae_pxTrain.npy')
+print "loading probe..."
+x_aux_train = np.load('/media/vplab/Samik_Work/Samik/Datasets/FR_SURV_VID_pr/data_npy/FSV/ae_pxTrain.npy')
+print "loading done..."
 # x_aux_train = x_aux_train[1:200]
 # y_aux_train =np.load('vyTrain.npy')
-x_test = np.load('testImagesIITM.npy')
+# x_test = np.load('/media/vplab/Samik_Work/Samik/Datasets/FR_SURV_VID_pr/data_npy/FSV/testImagesIITM.npy')
 # print y_train
 
-x_train = x_train.astype('float32')
-x_train = (x_train-x_train.min())/(x_train.max()-x_train.min())
-x_aux_train = x_aux_train.astype('float32')
-x_aux_train = (x_aux_train-x_aux_train.min())/(x_aux_train.max()-x_aux_train.min())
-# x_aux_train = x_aux_train * 255
-# x_aux_train = x_aux_train.astype('uint8')
-x_test = x_test.astype('float32')
-x_test = (x_test-x_test.min())/(x_test.max()-x_test.min())
+# x_train = x_train.astype('float32')
+# x_train = (x_train-x_train.min())/(x_train.max()-x_train.min())
+# x_aux_train = x_aux_train.astype('float32')
+# x_aux_train = (x_aux_train-x_aux_train.min())/(x_aux_train.max()-x_aux_train.min())
+# # x_aux_train = x_aux_train * 255
+# # x_aux_train = x_aux_train.astype('uint8')
+# x_test = x_test.astype('float32')
+# x_test = (x_test-x_test.min())/(x_test.max()-x_test.min())
 
 
 # x_train = x_train.astype('float32') / 255.
@@ -75,10 +76,10 @@ datagen = ImageDataGenerator(
 
 input_dim =  [100,100,3]
 
-sess = tf.InteractiveSession()
+# sess = tf.InteractiveSession()
 
-def hellinger_distance(y_true,y_pred):
-    y_true = K.clip()
+# def hellinger_distance(y_true,y_pred):
+#     y_true = K.clip()
 
 def create_network(input_dim):
 
@@ -143,41 +144,39 @@ def create_network(input_dim):
 
 
 model = create_network([100, 100, 3])
-model.save("model.h5",overwrite=True)
+# models.save("models.h5",overwrite=True)
 print(model.summary())
-# plot_model(model, to_file='model.png')
-# SVG(model_to_dot(model).create(prog='dot', format='svg'))
+# plot_model(models, to_file='models.png')
+# SVG(model_to_dot(models).create(prog='dot', format='svg'))
 # tbCallBack = keras.callbacks.TensorBoard(log_dir='Graph', histogram_freq=0,
 #           write_graph=True, write_images=True)
 #
-# tbCallBack.set_model(model)
+# tbCallBack.set_model(models)
 #
 # keras.callbacks.TensorBoard(sess)
 
 # sgd = SGD(lr=0.00001, decay=1e-6, momentum=0.9, nesterov=True)
 adam = keras.optimizers.Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=1e-05)
-model.compile(loss='mean_squared_error',
+model.compile(loss='kullback_leibler_divergence',
               optimizer=adam)
 
 datagen.fit(x_aux_train)
 filepath="models/ckpt{epoch:02d}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 model.fit_generator(datagen.flow(x_aux_train, x_train, batch_size=100),
-                    steps_per_epoch=len(x_aux_train) / 200, epochs=10000,
-                    callbacks=[TensorBoard(log_dir='/tmp/autoencoder',
-                                 write_images=True, write_grads=True),checkpoint])
+                    steps_per_epoch=len(x_aux_train) / 100, epochs=10000,
+                    callbacks=[TensorBoard(log_dir='models/'),checkpoint])
 
 # model.fit(x_aux_train,
 #           x_train,
 #           batch_size=200, epochs=1000000,
 #           callbacks=[TensorBoard(log_dir='/tmp/autoencoder',
 #                                  histogram_freq=1,
-#                                  write_images=True, write_grads=True)
-#                      ])
+#                                  write_images=True, write_grads=True),checkpoint])
 
-# grads = model.optimizer.get_gradients(model.total_loss,model.get_weights())
+# grads = models.optimizer.get_gradients(models.total_loss,models.get_weights())
 # print sess.run(grads)
-# decoded_imgs = model.predict(x_test)
+# decoded_imgs = models.predict(x_test)
 # np.save('dec_images',decoded_imgs)
 # n = 5
 # plt.figure(figsize=(20, 4))
@@ -197,9 +196,9 @@ model.fit_generator(datagen.flow(x_aux_train, x_train, batch_size=100),
 #     ax.get_yaxis().set_visible(False)
 # plt.show()
 
-model.save("model.h5",overwrite=True)
-# model.save_weights("model_weights.h5", overwrite=True)
-# score = model.evaluate(x_test,
+# models.save("models.h5",overwrite=True)
+# models.save_weights("model_weights.h5", overwrite=True)
+# score = models.evaluate(x_test,
 #                        y_test,
 #                         batch_size=20)
 

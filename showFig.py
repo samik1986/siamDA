@@ -43,7 +43,7 @@ print x_dec[106]
 # print x_dec[106]
 
 # p = np.zeros([1,100,100,3],dtype='int8')
-# decoded_imgs_p = model.predict(p)
+# decoded_imgs_p = models.predict(p)
 #
 # decoded_imgs_p = decoded_imgs_p.astype('float32')
 # decoded_imgs_p = (decoded_imgs_p-decoded_imgs_p.min())/(decoded_imgs_p.max()-decoded_imgs_p.min())
