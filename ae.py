@@ -111,16 +111,16 @@ print(model.summary())
 model_path = 'models'
 
 # sgd = SGD(lr=0.001, decay=1e-6, momentum=0.7, nesterov=True)
-adadelta = keras.optimizers.adadelta(lr=0.001,decay=1e-5)
+adadelta = keras.optimizers.adadelta(lr=0.0001,decay=1e-5)
 model.compile(loss='mse',
               optimizer='adadelta')
 filepath="models/ckpt{epoch:02d}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
-# model.load_weights('models/ckpt122.hdf5')
+model.load_weights('models/ckpt04.hdf5')
 
 model.fit(x_aux_train,
           x_train,
-          batch_size=200, epochs=1000000,
+          batch_size=200, epochs=1000000, initial_epoch= 5, verbose=2,
           callbacks=[TensorBoard(log_dir='models/'),checkpoint])
 
 
