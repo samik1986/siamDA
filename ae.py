@@ -23,7 +23,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 
 
 
-
+# n = 500
 
 print "loading gallery..."
 x_train = np.load('/root/PycharmProjects/tifs/ae_gxTrain1.npy')
@@ -31,11 +31,21 @@ x_index = [np.random.randint(0,len(x_train)) for r in xrange(100000)]
 x_train = x_train[x_index,]
 x_train = x_train.astype('float32')/255.
 
+
+
 print "loading probe..."
 x_aux_train = np.load('/root/PycharmProjects/tifs/ae_pxTrain1.npy')
 print "loading done..."
 x_aux_train = x_aux_train[x_index,]
 x_aux_train = x_aux_train.astype('float32')/255.
+
+# fig = plt.figure()
+#
+# fig.add_subplot(1,2,1)
+# plt.imshow(x_train[n])
+# fig.add_subplot(1,2,2)
+# plt.imshow(x_aux_train[n])
+# plt.show()
 
 
 input_dim =  [100,100,3]
