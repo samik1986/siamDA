@@ -22,64 +22,24 @@ from tensorflow.python.framework.op_def_library import _Flatten, _IsListValue
 from keras.callbacks import TensorBoard, ModelCheckpoint
 
 
-# Generate dummy data
-# x_train = np.random.random((100, 100, 100, 3))
-# # x_train = np.zeros(100,100,100,3)
-# y_train = keras.utils.to_categorical(
-#     np.random.randint(10, size=(100, 1)), num_classes=10)
-# y_aux_train = keras.utils.to_categorical(
-#     np.random.randint(2, size=(100, 1)), num_classes=2)
-# # y_aux_train = np.zeros((100, 100, 100, 3))
-#
-# x_aux_train = np.random.random((100, 100, 100, 3))
-# y_test = keras.utils.to_categorical(
-#     np.random.randint(10, size=(2, 1)), num_classes=10)
-# x1_test = np.zeros((2, 100, 100, 3))
-# y_aux_test = keras.utils.to_categorical(
-#     np.random.randint(2, size=(2, 1)), num_classes=2)
+
+
+
 print "loading gallery..."
-x_train = np.load('/media/vplab/Samik_Work/Samik/Datasets/FR_SURV_VID_pr/data_npy/FSV/ae_gxTrain.npy')
-# x_train = x_train[1:200]
-# y_train = np.load('gyTrain.npy')
+x_train = np.load('/root/PycharmProjects/tifs/ae_gxTrain1.npy')
+x_index = [np.random.randint(0,len(x_train)) for r in xrange(100000)]
+x_train = x_train[x_index,]
+x_train = x_train.astype('float32')/255.
+
 print "loading probe..."
-x_aux_train = np.load('/media/vplab/Samik_Work/Samik/Datasets/FR_SURV_VID_pr/data_npy/FSV/ae_pxTrain.npy')
+x_aux_train = np.load('/root/PycharmProjects/tifs/ae_pxTrain1.npy')
 print "loading done..."
-# x_aux_train = x_aux_train[1:200]
-# y_aux_train =np.load('vyTrain.npy')
-# x_test = np.load('/media/vplab/Samik_Work/Samik/Datasets/FR_SURV_VID_pr/data_npy/FSV/testImagesIITM.npy')
-# print y_train
+x_aux_train = x_aux_train[x_index,]
+x_aux_train = x_aux_train.astype('float32')/255.
 
-# x_train = x_train.astype('float32')
-# x_train = (x_train-x_train.min())/(x_train.max()-x_train.min())
-# x_aux_train = x_aux_train.astype('float32')
-# x_aux_train = (x_aux_train-x_aux_train.min())/(x_aux_train.max()-x_aux_train.min())
-# # x_aux_train = x_aux_train * 255
-# # x_aux_train = x_aux_train.astype('uint8')
-# x_test = x_test.astype('float32')
-# x_test = (x_test-x_test.min())/(x_test.max()-x_test.min())
-
-
-# x_train = x_train.astype('float32') / 255.
-# x_aux_train = x_aux_train.astype('float32') / 255.
-# x_test = x_test.astype('float32') / 255.
-
-datagen = ImageDataGenerator(
-    featurewise_center=True,
-    featurewise_std_normalization=True,
-    rotation_range=20,
-    width_shift_range=0.2,
-    height_shift_range=0.2,
-    horizontal_flip=True)
-
-# x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
-# x_aux_train = x_aux_train.reshape((len(x_aux_train), np.prod(x_aux_train.shape[1:])))
 
 input_dim =  [100,100,3]
 
-# sess = tf.InteractiveSession()
-
-# def hellinger_distance(y_true,y_pred):
-#     y_true = K.clip()
 
 def create_network(input_dim):
 
@@ -87,52 +47,43 @@ def create_network(input_dim):
     input_target = Input(input_dim)
 
     #---Autoencoder----
-    x = Conv2D(16, (3, 3), activation='relu', padding='same')(input_target)
-    x = Conv2D(48, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(96, (3, 3), activation='relu', padding='same')(x)
-    # x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
-    # x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(128, (3, 3), activation='relu', padding='same')(input_target)
     x = MaxPooling2D((2, 2), padding='same')(x)
     x = BatchNormalization()(x)
     x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
     x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D((2, 2), padding='same')(x)
-    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    # x = MaxPooling2D((2, 2), padding='same')(x)
+    # x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
     x = MaxPooling2D((2, 2), padding='same')(x)
     shape1 = K.int_shape(x)
     print shape1[0]
     x = Flatten()(x)
     shape2 = K.int_shape(x)
     print shape2[0]
-    # x = Dropout(0.5)(x)
     x = Dense(4096,activation='relu')(x)
     x = Dense(1024,activation='relu')(x)
     x = Dense(512,activation='relu')(x)
-    encoded = Dense(256,activation='relu')(x)
-    # encoded = Dropout(0.5)(x)
+    # encoded = Dense(256,activation='relu')(x)
+    encoded = Dropout(0.5)(x)
 
 
 
     # print encoded
-    x = Dense(256,activation='relu')(encoded)
+    # x = Dense(256,activation='relu')(encoded)
     x = Dense(512,activation='relu')(x)
     x = Dense(1024,activation='relu')(x)
     x = Dense(4096,activation='relu')(x)
     x = Dense(shape2[1],activation='relu')(x)
     x = Reshape([shape1[1],shape1[2],shape1[3]])(x)
     x = UpSampling2D((2, 2))(x)
-    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
+    # x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    # x = UpSampling2D((2, 2))(x)
     x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
     x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
     x = BatchNormalization()(x)
     x = UpSampling2D((2, 2))(x)
-    # x = Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    # x = Conv2D(128, (3, 3), activation='relu',padding='same')(x)
-    x = Conv2D(96, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(48, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(16, (3, 3), activation='relu')(x)
-    decoded = Conv2D(3, (3, 3), activation='sigmoid')(x)
+    x = Conv2D(128, (3, 3), activation='relu',padding='same')(x)
+    decoded = Conv2D(3, (3, 3), activation='sigmoid',padding='same')(x)
     print K.int_shape(decoded)
     # print input_source
 
@@ -142,66 +93,24 @@ def create_network(input_dim):
 
     return final
 
-
+# with K.tf.device('/gpu:1'):
 model = create_network([100, 100, 3])
-# models.save("models.h5",overwrite=True)
+
 print(model.summary())
-# plot_model(models, to_file='models.png')
-# SVG(model_to_dot(models).create(prog='dot', format='svg'))
-# tbCallBack = keras.callbacks.TensorBoard(log_dir='Graph', histogram_freq=0,
-#           write_graph=True, write_images=True)
-#
-# tbCallBack.set_model(models)
-#
-# keras.callbacks.TensorBoard(sess)
 
-# sgd = SGD(lr=0.00001, decay=1e-6, momentum=0.9, nesterov=True)
-adam = keras.optimizers.Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=1e-05)
-model.compile(loss='kullback_leibler_divergence',
-              optimizer=adam)
+model_path = 'models'
 
-datagen.fit(x_aux_train)
+# sgd = SGD(lr=0.001, decay=1e-6, momentum=0.7, nesterov=True)
+adadelta = keras.optimizers.adadelta(lr=0.001,decay=1e-5)
+model.compile(loss='mse',
+              optimizer='adadelta')
 filepath="models/ckpt{epoch:02d}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
-model.fit_generator(datagen.flow(x_aux_train, x_train, batch_size=100),
-                    steps_per_epoch=len(x_aux_train) / 100, epochs=10000,
-                    callbacks=[TensorBoard(log_dir='models/'),checkpoint])
+# model.load_weights('models/ckpt122.hdf5')
 
-# model.fit(x_aux_train,
-#           x_train,
-#           batch_size=200, epochs=1000000,
-#           callbacks=[TensorBoard(log_dir='/tmp/autoencoder',
-#                                  histogram_freq=1,
-#                                  write_images=True, write_grads=True),checkpoint])
+model.fit(x_aux_train,
+          x_train,
+          batch_size=200, epochs=1000000,
+          callbacks=[TensorBoard(log_dir='models/'),checkpoint])
 
-# grads = models.optimizer.get_gradients(models.total_loss,models.get_weights())
-# print sess.run(grads)
-# decoded_imgs = models.predict(x_test)
-# np.save('dec_images',decoded_imgs)
-# n = 5
-# plt.figure(figsize=(20, 4))
-# for i in range(n):
-#     # display original
-#     ax = plt.subplot(2, n, i)
-#     plt.imshow(x_test[i].reshape(100, 100))
-#     plt.gray()
-#     ax.get_xaxis().set_visible(False)
-#     ax.get_yaxis().set_visible(False)
-#
-#     # display reconstruction
-#     ax = plt.subplot(2, n, i + n)
-#     plt.imshow(decoded_imgs[i].reshape(100, 100))
-#     plt.gray()
-#     ax.get_xaxis().set_visible(False)
-#     ax.get_yaxis().set_visible(False)
-# plt.show()
-
-# models.save("models.h5",overwrite=True)
-# models.save_weights("model_weights.h5", overwrite=True)
-# score = models.evaluate(x_test,
-#                        y_test,
-#                         batch_size=20)
-
-
-# print score
 
