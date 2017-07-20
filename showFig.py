@@ -4,22 +4,24 @@ from keras.models import load_model, Model, save_model
 
 x_test = np.load('/root/PycharmProjects/tifs/testImagesIITM.npy')
 
-plt.imshow(x_test[106])
+n = 105
+
+plt.imshow(x_test[n])
 plt.show()
 
 
-x_test = x_test.astype('float32')
+x_test = x_test.astype('float32')/255.
 # x_test = (x_test-x_test.min())/(x_test.max()-x_test.min())
 
-print x_test[106]
+# print x_test[106]
 #
 # x_train1 = np.load('trainImagesIITM.npy')
 # x_train1 = x_train1.astype('float32')
 # x_train1 = (x_train1-x_train1.min())/(x_train1.max()-x_train1.min())
 #
-model = load_model('models/ckpt12.hdf5')
+model = load_model('models/ckpt02.hdf5')
 #
-decoded_imgs = model.predict(x_test)
+decoded_imgs = model.predict(x_test[n:n+1])
 x_dec = decoded_imgs
 print np.shape(decoded_imgs)
 
@@ -30,14 +32,14 @@ print np.shape(decoded_imgs)
 # x_aux_train = np.load('ae_pxTrain.npy')
 # x_train = np.load('ae_gxTrain.npy')
 
-print x_dec[106]
-x_dec1 =x_dec
-# x_dec = x_dec.astype('uint8')
-# x_dec1 = (x_dec+x_dec.min())*(x_dec.max()-x_dec.min())
-x_dec1 = (x_dec1-x_dec1.min())/(x_dec1.max()-x_dec1.min())
-x_dec1 = x_dec1 * 255
-x_dec1 = x_dec1.astype('uint8')
-print x_dec1[106]
+# print x_dec[106]
+# x_dec1 =x_dec
+# # x_dec = x_dec.astype('uint8')
+# # x_dec1 = (x_dec+x_dec.min())*(x_dec.max()-x_dec.min())
+# x_dec1 = (x_dec1-x_dec1.min())/(x_dec1.max()-x_dec1.min())
+# x_dec1 = x_dec1 * 255
+# x_dec1 = x_dec1.astype('uint8')
+# print x_dec1[106]
 
 # x_dec = x_dec.astype('int8')
 
@@ -61,7 +63,7 @@ print x_dec1[106]
 #
 #
 #
-plt.imshow(x_dec1[106])
+plt.imshow(decoded_imgs[0])
 plt.show()
 
 # plt.imshow(x_train1[106])
